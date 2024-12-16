@@ -13,6 +13,8 @@ type RequestPayload struct {
 }
 
 type AuthPayload struct {
+	Email    string `json:"email"`
+	Password string `json:"password"`
 }
 
 func (app *Config) Broker(w http.ResponseWriter, r *http.Request) {
@@ -61,7 +63,7 @@ func (app *Config) authenticate(w http.ResponseWriter, a AuthPayload) {
 	if response.StatusCode == http.StatusUnauthorized {
 		_ = app.errorJson(w, fmt.Errorf("invalid credentials"))
 		return
-	} else if response.StatusCode != http.StatusOK {
+	} else if response.StatusCode != http.StatusAccepted {
 		_ = app.errorJson(w, fmt.Errorf("error calling auth service: %d", response.StatusCode))
 		return
 	} else {

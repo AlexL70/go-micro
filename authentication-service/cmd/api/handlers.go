@@ -3,6 +3,7 @@ package main
 import (
 	"errors"
 	"fmt"
+	"log"
 	"net/http"
 )
 
@@ -16,6 +17,7 @@ func (app *Config) Authenticate(w http.ResponseWriter, r *http.Request) {
 	err := app.readJson(w, r, &RequestPayload)
 	if err != nil {
 		app.errorJson(w, err, http.StatusBadRequest)
+		log.Println("Error reading JSON with auth data", err)
 		return
 	}
 
@@ -23,12 +25,14 @@ func (app *Config) Authenticate(w http.ResponseWriter, r *http.Request) {
 	user, err := app.Models.User.GetByEmail(RequestPayload.Email)
 	if err != nil {
 		app.errorJson(w, errors.New(authMessage), http.StatusUnauthorized)
+		log.Println("User not found", RequestPayload.Email)
 		return
 	}
 
 	valid, err := user.PasswordMatches(RequestPayload.Password)
 	if err != nil || !valid {
 		app.errorJson(w, errors.New(authMessage), http.StatusUnauthorized)
+		log.Println("Invalid password for user", RequestPayload.Email)
 		return
 	}
 
@@ -38,4 +42,5 @@ func (app *Config) Authenticate(w http.ResponseWriter, r *http.Request) {
 		Data:    user,
 	}
 	app.writeJson(w, http.StatusAccepted, payload)
+	log.Println("Authenticated user", user.Email)
 }

@@ -46,10 +46,11 @@ build_front:
 ## current user.
 start: build_front
 	@echo "Starting front end"
-	cd ../front-end && printf "$CURR_PASS\n" | sudo -p "" -S ./${FRONT_END_BINARY} &
+	@cd ../front-end && printf "$(CURR_PASS)\n" | sudo -p "" -S ./${FRONT_END_BINARY} &
+	@echo "Front end started!"
 
 ## stop: stop the front end
 stop:
 	@echo "Stopping front end..."
-	@-printf "$CURR_PASS\n" | sudo -p "" -S pkill -SIGTERM -f "./${FRONT_END_BINARY}"
+	@-printf "$(CURR_PASS)\n" | sudo -p "" -S pkill -SIGTERM -f "./${FRONT_END_BINARY}"
 	@echo "Stopped front end!"
