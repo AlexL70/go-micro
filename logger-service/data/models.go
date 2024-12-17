@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
@@ -36,9 +37,14 @@ func (l *LogEntry) collection() *mongo.Collection {
 	return client.Database("logs").Collection("logs")
 }
 
+func (l *LogEntry) context() (context.Context, context.CancelFunc) {
+	return context.WithTimeout(context.Background(), 15*time.Second)
+}
+
 func (l *LogEntry) Insert() error {
 	collection := l.collection()
-	_, err := collection.InsertOne(context.TODO(), LogEntry{
+	ctx, _ := l.context()
+	_, err := collection.InsertOne(ctx, LogEntry{
 		Name:      l.Name,
 		Data:      l.Data,
 		CreatedAt: time.Now().UTC(),
@@ -53,7 +59,7 @@ func (l *LogEntry) Insert() error {
 
 func (l *LogEntry) All() ([]*LogEntry, error) {
 	collection := l.collection()
-	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+	ctx, cancel := l.context()
 	defer cancel()
 
 	opts := options.Find()
@@ -76,4 +82,62 @@ func (l *LogEntry) All() ([]*LogEntry, error) {
 		logs = append(logs, &item)
 	}
 	return logs, nil
+}
+
+func (l *LogEntry) GetOne(id string) (*LogEntry, error) {
+	collection := l.collection()
+	ctx, cancel := l.context()
+	defer cancel()
+
+	docID, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		log.Printf("Error converting string to mongo ID: %v\n", err)
+		return nil, err
+	}
+
+	var entry LogEntry
+	err = collection.FindOne(ctx, bson.M{"_id": docID}).Decode(&entry)
+	if err != nil {
+		log.Printf("Error getting log entry: %v\n", err)
+		return nil, err
+	}
+	return &entry, nil
+}
+
+func (l *LogEntry) DropCollection() error {
+	collection := l.collection()
+	ctx, cancel := l.context()
+	defer cancel()
+
+	err := collection.Drop(ctx)
+	if err != nil {
+		log.Printf("Error dropping collection: %v\n", err)
+		return err
+	}
+	return nil
+}
+
+func (l *LogEntry) Update() (*mongo.UpdateResult, error) {
+	ctx, cancel := l.context()
+	collection := l.collection()
+	defer cancel()
+
+	docID, err := primitive.ObjectIDFromHex(l.ID)
+	if err != nil {
+		log.Printf("Error converting string to mongo ID: %v\n", err)
+		return nil, err
+	}
+	result, err := collection.UpdateOne(ctx, bson.M{"_id": docID},
+		bson.D{
+			{Key: "$set", Value: bson.D{
+				{Key: "name", Value: l.Name},
+				{Key: "data", Value: l.Data},
+				{Key: "updated_at", Value: time.Now().UTC()},
+			}},
+		})
+	if err != nil {
+		log.Printf("Error updating log entry: %v\n", err)
+		return nil, err
+	}
+	return result, nil
 }
