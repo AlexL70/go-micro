@@ -41,12 +41,12 @@ func (l *LogEntry) context() (context.Context, context.CancelFunc) {
 	return context.WithTimeout(context.Background(), 15*time.Second)
 }
 
-func (l *LogEntry) Insert() error {
+func (l *LogEntry) Insert(event LogEntry) error {
 	collection := l.collection()
 	ctx, _ := l.context()
 	_, err := collection.InsertOne(ctx, LogEntry{
-		Name:      l.Name,
-		Data:      l.Data,
+		Name:      event.Name,
+		Data:      event.Data,
 		CreatedAt: time.Now().UTC(),
 		UpdatedAt: time.Now().UTC(),
 	})
