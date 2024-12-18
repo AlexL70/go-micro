@@ -70,7 +70,9 @@ func (app *Config) logItem(w http.ResponseWriter, entry LogPayload) {
 	}
 	defer response.Body.Close()
 	if response.StatusCode != http.StatusAccepted {
-		_ = app.errorJson(w, fmt.Errorf("error calling log service: %d", response.StatusCode))
+		var errResp jsonResponse
+		_ = json.NewDecoder(response.Body).Decode(&errResp)
+		_ = app.errorJson(w, fmt.Errorf("error calling log service: %d %s", response.StatusCode, errResp.Message))
 		return
 	}
 	_ = app.writeJson(w, http.StatusAccepted, jsonResponse{
