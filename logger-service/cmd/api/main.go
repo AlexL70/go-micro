@@ -49,7 +49,8 @@ func main() {
 		Models: data.New(client),
 	}
 
-	go app.serve()
+	log.Printf("Starting web server on port %s. Mongo DB is %s\n", webPort, mongoUrl)
+	app.serve()
 }
 
 func (app *Config) serve() {
