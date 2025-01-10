@@ -2,4 +2,5 @@ broker-service/brokerApp
 front-end/frontApp
 authentication-service/authApp
 logger-service/loggerApp
+mail-service/mailApp
 project/db-data
