@@ -3,8 +3,9 @@ package main
 import (
 	"bytes"
 	"encoding/json"
-	"errors"
 	"fmt"
+	"io"
+	"log"
 	"net/http"
 )
 
@@ -159,10 +160,25 @@ func (app *Config) sendMail(w http.ResponseWriter, msg MailPayload) {
 
 	// make sure we get back the right status code
 	if response.StatusCode != http.StatusAccepted {
-		app.errorJson(w, errors.New("error calling mail service"))
+		//var resp jsonResponse
+		bytes, resp_err := io.ReadAll(response.Body)
+		if resp_err != nil {
+			app.errorJson(w, fmt.Errorf("error decoding mail service error: %w", resp_err))
+		} else {
+			var err_str string
+			log.Println("Mail service returned error:", string(bytes))
+			err = json.Unmarshal(bytes, &err_str)
+			if err != nil {
+				app.errorJson(w, fmt.Errorf("error unmarshalling mail response: %w", err))
+			} else {
+				app.errorJson(w, fmt.Errorf("error calling mail service: %s", err_str))
+			}
+		}
+		return
 	}
 
 	// send back json
+	log.Printf("Email has been sent successfully to %s\n", msg.To)
 	var payload jsonResponse
 	payload.Error = false
 	payload.Message = fmt.Sprintf("Email has been sent successfully to %s", msg.To)
