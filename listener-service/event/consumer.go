@@ -1,9 +1,14 @@
 package event
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"log"
+	"net/http"
+
+	"context"
+	"io"
 
 	amqp "github.com/rabbitmq/amqp091-go"
 )
@@ -109,6 +114,36 @@ func handlePayload(payload Payload) {
 	}
 }
 
-func logEvent(entry Payload) any {
-	panic("not implemented")
+func logEvent(entry Payload) error {
+	type jsonResponse struct {
+		Error   bool   `json:"error"`
+		Message string `json:"message"`
+		Data    any    `json:"data,omitempty"`
+	}
+	jsonData, _ := json.MarshalIndent(entry, "", "\t")
+
+	logServiceUrl := "http://logger-service/log"
+
+	request, err := func() (*http.Request, error) {
+		var body io.Reader = bytes.NewBuffer(jsonData)
+		return http.NewRequestWithContext(context.Background(), "POST", logServiceUrl, body)
+	}()
+
+	if err != nil {
+		return fmt.Errorf("error creating request for logging: %v", err)
+	}
+	request.Header.Set("Content-Type", "application/json")
+	client := &http.Client{}
+	response, err := client.Do(request)
+	if err != nil {
+		return fmt.Errorf("error calling log service: %v", err)
+	}
+	defer response.Body.Close()
+	if response.StatusCode != http.StatusAccepted {
+		var errResp jsonResponse
+		_ = json.NewDecoder(response.Body).Decode(&errResp)
+		return fmt.Errorf("error calling log service: %d %s", response.StatusCode, errResp.Message)
+	}
+
+	return nil
 }
