@@ -2,15 +2,13 @@ version: '3'
 
 services:
   broker-service:
-    image: alexanderlevinson70/brocker-service:1.0.0
-    ports:
-      - "8080:80"
+    image: alexanderlevinson70/brocker-service:1.0.1
     deploy:
       mode: replicated
       replicas: 1
 
   listener-service:
-    image: alexanderlevinson70/listener-service:1.0.0
+    image: alexanderlevinson70/listener-service:1.0.1
     deploy:
       mode: replicated
       replicas: 1
