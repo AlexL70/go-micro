@@ -4,6 +4,7 @@ LOGGER_BINARY=loggerApp
 AUTH_BINARY=authApp
 MAIL_BINARY=mailApp
 LISTENER_BINARY=listenerApp
+FRONT_BINARY=frontEndApp
 
 ## up: starts all containers in the background without forcing build
 up:
@@ -55,11 +56,17 @@ build_listener:
 	cd ../listener-service && env GOOS=linux CGO_ENABLED=0 go build -o ${LISTENER_BINARY} .
 	@echo "Done!"
 
-## build_front: builds the frone end binary
+## build_front: builds the front end binary (for the current OS)
 build_front:
 	@echo "Building front end binary..."
 	cd ../front-end && env CGO_ENABLED=0 go build -o ${FRONT_END_BINARY} ./cmd/web
 	@echo "Done!"
+
+## build_front_linux: builts the front end binary as a linux executable
+build_front_linux:
+	@echo "Building front end linux binary..."
+	cd ../front-end && env GOOS=linux CGO_ENABLED=0 go build -o ${FRONT_BINARY} ./cmd/web
+
 
 ## start: starts the front end
 ## Running on 80 port requires root privileges. So, before running the binary,
