@@ -1,6 +1,12 @@
 version: '3'
 
 services:
+  front-end:
+    image: alexanderlevinson70/front-end-service:1.0.0
+    deploy:
+      mode: replicated
+      replicas: 1
+
   broker-service:
     image: alexanderlevinson70/brocker-service:1.0.1
     deploy:
