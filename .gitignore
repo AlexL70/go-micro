@@ -1,4 +1,5 @@
 broker-service/brokerApp
+front-end/frontEndApp
 front-end/frontApp
 authentication-service/authApp
 logger-service/loggerApp

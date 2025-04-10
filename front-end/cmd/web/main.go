@@ -50,6 +50,7 @@ func render(w http.ResponseWriter, t string) {
 	}
 
 	data.BrokerURL = os.Getenv("GO_MICRO_BROKER_URL")
+	fmt.Println("Broker URL: ", data.BrokerURL)
 
 	if err := tmpl.Execute(w, data); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)

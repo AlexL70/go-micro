@@ -152,6 +152,7 @@
         brokerBtn.addEventListener('click', function() {
             sent.innerHTML = 'Loading...';
             received.innerHTML = 'Loading...';
+            console.log({{print .BrokerURL "   Broker button clicked"}});
 
             const body = {
                 method: 'POST',
